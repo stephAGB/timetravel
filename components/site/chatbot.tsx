@@ -20,29 +20,73 @@ export function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "bot",
-      text: "Greetings, traveler. I'm Chronos AI, your temporal concierge. How can I help you plan your journey across time?",
+      text: "Salutations, voyageur. Je suis Chronos AI, votre concierge temporel. Comment puis-je vous aider à planifier votre voyage à travers les époques ?",
     },
   ])
   const [input, setInput] = useState("")
+  const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages, open])
+  }, [messages, open, loading])
 
-  const respond = (text: string) => {
-    const reply =
-      cannedResponses[text] ??
-      "Great question! A chrono-concierge specializes in that. In the meantime, tell me which era intrigues you most — Ancient Egypt, the Renaissance, or Neo-Tokyo?"
-    setTimeout(() => setMessages((m) => [...m, { role: "bot", text: reply }]), 500)
-  }
-
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim()
-    if (!trimmed) return
-    setMessages((m) => [...m, { role: "user", text: trimmed }])
+    if (!trimmed || loading) return
+
+    const userMessage: Message = { role: "user", text: trimmed }
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
     setInput("")
-    respond(trimmed)
+    setLoading(true)
+
+    try {
+      // Map to API format
+      const apiMessages = updatedMessages.map((m) => ({
+        role: m.role === "bot" ? "assistant" : "user",
+        content: m.text,
+      }))
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: apiMessages }),
+      })
+
+      if (!res.ok) throw new Error("API request failed")
+
+      const data = await res.json()
+      
+      if (data.error === "API_KEYS_MISSING") {
+        setMessages((m) => [
+          ...m,
+          {
+            role: "bot",
+            text: data.message,
+          },
+        ])
+      } else {
+        setMessages((m) => [
+          ...m,
+          {
+            role: "bot",
+            text: data.text || "Désolé, je ne parviens pas à formuler une réponse.",
+          },
+        ])
+      }
+    } catch (err) {
+      console.error(err)
+      setMessages((m) => [
+        ...m,
+        {
+          role: "bot",
+          text: "Connexion impossible avec le réseau temporel. Veuillez vérifier votre clé API et réessayer.",
+        },
+      ])
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -90,7 +134,7 @@ export function Chatbot() {
               className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
                   m.role === "user"
                     ? "rounded-br-sm bg-primary text-primary-foreground"
                     : "rounded-bl-sm border border-border bg-secondary/60 text-foreground"
@@ -100,6 +144,13 @@ export function Chatbot() {
               </div>
             </div>
           ))}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-border bg-secondary/60 px-3.5 py-2.5 text-sm text-muted-foreground animate-pulse">
+                Chronos AI réfléchit...
+              </div>
+            </div>
+          )}
         </div>
 
         {/* quick replies */}
@@ -109,7 +160,8 @@ export function Chatbot() {
               key={q}
               type="button"
               onClick={() => send(q)}
-              className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+              disabled={loading}
+              className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
             >
               <Sparkles className="size-3" />
               {q}
@@ -128,6 +180,7 @@ export function Chatbot() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
             placeholder="Ask Chronos AI…"
             className="min-w-0 flex-1 rounded-xl border border-border bg-secondary/40 px-3.5 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60"
           />
@@ -135,7 +188,7 @@ export function Chatbot() {
             type="submit"
             aria-label="Send message"
             className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-transform hover:scale-105 disabled:opacity-50"
-            disabled={!input.trim()}
+            disabled={!input.trim() || loading}
           >
             <Send className="size-4" />
           </button>
