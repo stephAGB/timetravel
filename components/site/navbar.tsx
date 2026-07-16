@@ -34,7 +34,7 @@ export function Navbar() {
             <Clock className="size-5" />
           </span>
           <span className="font-mono text-sm font-semibold tracking-[0.18em] text-foreground uppercase">
-            TimeTravel<span className="text-primary">.</span>
+            TimeTravel Agency<span className="text-primary">.</span>
           </span>
         </a>
 
