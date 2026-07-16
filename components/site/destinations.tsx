@@ -51,7 +51,7 @@ export function Destinations() {
             onClick={() => setActive(d)}
             className="group relative overflow-hidden rounded-3xl border border-border bg-card text-left transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:neon-border"
           >
-            <div className="relative aspect-[4/5] overflow-hidden">
+            <div className="relative aspect-[16/9] overflow-hidden">
               <Image
                 src={d.image || "/placeholder.svg"}
                 alt={`${d.name}, ${d.year}`}
@@ -59,7 +59,7 @@ export function Destinations() {
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-card/20 to-transparent" />
               {/* shimmer sweep */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
 
@@ -78,7 +78,7 @@ export function Destinations() {
               </div>
             </div>
 
-            <div className="relative -mt-16 p-6">
+            <div className="p-6">
               <p className="font-mono text-xs tracking-widest text-primary uppercase">{d.era}</p>
               <h3 className="mt-1 text-2xl font-bold text-foreground">{d.name}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
