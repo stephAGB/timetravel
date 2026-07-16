@@ -1,3 +1,6 @@
+"use client"
+
+import { motion } from "framer-motion"
 import { ShieldCheck, Infinity as InfinityIcon, Globe2, Zap } from "lucide-react"
 
 const metrics = [
@@ -7,11 +10,38 @@ const metrics = [
   { icon: Zap, value: "99,98 %", label: "Retours sécurisés" },
 ]
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
+
 export function Agency() {
   return (
     <section id="agency" className="relative mx-auto max-w-7xl scroll-mt-20 px-5 py-24 md:px-8 md:py-32">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
           <span className="font-mono text-xs tracking-[0.2em] text-primary uppercase">
             / Notre mission
           </span>
@@ -32,20 +62,35 @@ export function Agency() {
 
           <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
             {["Chrono-guides certifiés", "Assurance paradoxe incluse", "Fenêtre de retour garantie"].map(
-              (item) => (
-                <div key={item} className="flex items-center gap-2 text-sm text-foreground">
+              (item, idx) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + idx * 0.1, duration: 0.5 }}
+                  className="flex items-center gap-2 text-sm text-foreground"
+                >
                   <span className="size-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
                   {item}
-                </div>
+                </motion.div>
               ),
             )}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-2 gap-4"
+        >
           {metrics.map((m) => (
-            <div
+            <motion.div
               key={m.label}
+              variants={cardVariants}
+              whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.3 } }}
               className="group relative overflow-hidden rounded-2xl border border-border bg-card/60 p-6 backdrop-blur transition-all hover:border-primary/50 hover:bg-card"
             >
               <div className="absolute -right-6 -top-6 size-20 rounded-full bg-primary/5 blur-2xl transition-opacity group-hover:bg-primary/15" />
@@ -54,9 +99,9 @@ export function Agency() {
                 {m.value}
               </div>
               <div className="mt-1 text-sm text-muted-foreground">{m.label}</div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

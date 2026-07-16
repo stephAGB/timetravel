@@ -1,5 +1,31 @@
+"use client"
+
+import { motion } from "framer-motion"
 import { ArrowRight, Sparkles, ChevronDown } from "lucide-react"
 import { GridBackground } from "./grid-background"
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+}
 
 export function Hero() {
   return (
@@ -21,26 +47,43 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-4xl animate-fade-up">
-        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-4 py-1.5 backdrop-blur">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 mx-auto max-w-4xl"
+      >
+        <motion.div
+          variants={itemVariants}
+          className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-4 py-1.5 backdrop-blur"
+        >
           <Sparkles className="size-3.5 text-primary" />
           <span className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
             Fondée en 2087 · Opérateur temporel agréé
           </span>
-        </div>
+        </motion.div>
 
-        <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl">
+        <motion.h1
+          variants={itemVariants}
+          className="text-balance text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl"
+        >
           Explorez le passé,
           <br />
           <span className="text-primary text-glow">façonnez l&apos;avenir.</span>
-        </h1>
+        </motion.h1>
 
-        <p className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
+        <motion.p
+          variants={itemVariants}
+          className="mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground md:text-lg"
+        >
           Un tourisme temporel de luxe conçu pour le voyageur exigeant. Traversez les millénaires
           avec des chrono-guides d&apos;exception, zéro paradoxe et un billet retour garanti.
-        </p>
+        </motion.p>
 
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <motion.div
+          variants={itemVariants}
+          className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+        >
           <a
             href="#destinations"
             className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 neon-border sm:w-auto"
@@ -54,8 +97,8 @@ export function Hero() {
           >
             Réserver une timeline
           </a>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <a
         href="#agency"

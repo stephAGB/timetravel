@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { CheckCircle2, Users, CalendarClock, Rocket, Loader2, ChevronDown } from "lucide-react"
 import { destinations } from "@/lib/destinations"
+import { motion } from "framer-motion"
 
 type Status = "idle" | "validating" | "success"
 
@@ -31,7 +32,13 @@ export function BookingForm() {
 
   return (
     <section id="booking" className="relative mx-auto max-w-3xl scroll-mt-20 px-5 py-24 md:py-32">
-      <div className="mx-auto max-w-2xl text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto max-w-2xl text-center"
+      >
         <span className="font-mono text-xs tracking-[0.2em] text-primary uppercase">/ Quai de départ</span>
         <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight text-foreground md:text-5xl">
           Réservez votre timeline
@@ -40,9 +47,13 @@ export function BookingForm() {
           Verrouillez vos coordonnées temporelles. Notre réseau effectuera un contrôle de paradoxe
           avant de confirmer votre fenêtre de départ.
         </p>
-      </div>
+      </motion.div>
 
-      <form
+      <motion.form
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         onSubmit={validate}
         className="relative mt-12 overflow-hidden rounded-3xl border border-border bg-card/70 p-6 backdrop-blur md:p-8"
       >
@@ -165,7 +176,7 @@ export function BookingForm() {
             </div>
           )}
         </div>
-      </form>
+      </motion.form>
     </section>
   )
 }

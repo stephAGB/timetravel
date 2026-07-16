@@ -4,11 +4,34 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { AlertTriangle, ArrowUpRight, Clock, MapPin, X, Calendar, Sparkles } from "lucide-react"
 import { destinations, type Destination, type DangerLevel } from "@/lib/destinations"
+import { motion, AnimatePresence } from "framer-motion"
 
 const dangerStyles: Record<DangerLevel, string> = {
   Faible: "text-[oklch(0.75_0.16_150)] border-[oklch(0.75_0.16_150)]/40 bg-[oklch(0.75_0.16_150)]/10",
   Modéré: "text-[oklch(0.8_0.15_85)] border-[oklch(0.8_0.15_85)]/40 bg-[oklch(0.8_0.15_85)]/10",
   Élevé: "text-[oklch(0.7_0.2_25)] border-[oklch(0.7_0.2_25)]/40 bg-[oklch(0.7_0.2_25)]/10",
+}
+
+const gridVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
 }
 
 export function Destinations() {
@@ -30,7 +53,13 @@ export function Destinations() {
       id="destinations"
       className="relative mx-auto max-w-7xl scroll-mt-20 px-5 py-24 md:px-8 md:py-32"
     >
-      <div className="mx-auto max-w-2xl text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto max-w-2xl text-center"
+      >
         <span className="font-mono text-xs tracking-[0.2em] text-primary uppercase">
           / Timelines en vedette
         </span>
@@ -41,9 +70,15 @@ export function Destinations() {
           Trois fenêtres méticuleusement sélectionnées sur l&apos;histoire et au-delà. Touchez une
           timeline pour afficher tous les détails de l&apos;expédition.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-3">
+      <motion.div
+        variants={gridVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="mt-14 grid gap-6 md:grid-cols-3"
+      >
         {destinations.map((d) => (
           <DestinationCard
             key={d.id}
@@ -51,9 +86,11 @@ export function Destinations() {
             onClick={() => setActive(d)}
           />
         ))}
-      </div>
+      </motion.div>
 
-      {active && <DestinationModal destination={active} onClose={() => setActive(null)} />}
+      <AnimatePresence>
+        {active && <DestinationModal destination={active} onClose={() => setActive(null)} />}
+      </AnimatePresence>
     </section>
   )
 }
@@ -62,12 +99,15 @@ function DestinationCard({ d, onClick }: { d: Destination; onClick: () => void }
   const [hovered, setHovered] = useState(false)
 
   return (
-    <button
+    <motion.button
+      variants={cardVariants}
+      whileHover={{ y: -8, scale: 1.01 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       type="button"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group relative overflow-hidden rounded-3xl border border-border bg-card text-left transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:neon-border"
+      className="group relative overflow-hidden rounded-3xl border border-border bg-card text-left transition-colors duration-300 hover:border-primary/60 hover:neon-border"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-muted">
         <Image
@@ -128,7 +168,7 @@ function DestinationCard({ d, onClick }: { d: Destination; onClick: () => void }
           </span>
         </div>
       </div>
-    </button>
+    </motion.button>
   )
 }
 
@@ -146,12 +186,22 @@ function DestinationModal({
       aria-label={`Détails de l'expédition ${d.name}`}
       className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6"
     >
-      <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm [animation:fade-up_0.2s_ease-out]"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative z-10 max-h-[92svh] w-full max-w-3xl overflow-y-auto rounded-t-3xl border border-border bg-card shadow-2xl [animation:fade-up_0.35s_ease-out] sm:rounded-3xl">
+      <motion.div
+        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 50, scale: 0.95 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 max-h-[92svh] w-full max-w-3xl overflow-y-auto rounded-t-3xl border border-border bg-card shadow-2xl sm:rounded-3xl"
+      >
         <div className="relative h-56 overflow-hidden sm:h-72 bg-muted">
           <Image
             src={d.image || "/placeholder.svg"}
@@ -239,7 +289,7 @@ function DestinationModal({
             Réserver cette timeline
           </a>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
