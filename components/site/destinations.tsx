@@ -45,67 +45,90 @@ export function Destinations() {
 
       <div className="mt-14 grid gap-6 md:grid-cols-3">
         {destinations.map((d) => (
-          <button
+          <DestinationCard
             key={d.id}
-            type="button"
+            d={d}
             onClick={() => setActive(d)}
-            className="group relative overflow-hidden rounded-3xl border border-border bg-card text-left transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:neon-border"
-          >
-            <div className="relative aspect-[16/9] overflow-hidden">
-              <Image
-                src={d.image || "/placeholder.svg"}
-                alt={`${d.name}, ${d.year}`}
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-card/20 to-transparent" />
-              {/* shimmer sweep */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
-
-              <div className="absolute left-4 top-4 flex items-center gap-2">
-                <span className="rounded-full border border-primary/40 bg-background/70 px-3 py-1 font-mono text-xs text-primary backdrop-blur">
-                  {d.year}
-                </span>
-              </div>
-              <div className="absolute right-4 top-4">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[0.7rem] backdrop-blur ${dangerStyles[d.danger]}`}
-                >
-                  <AlertTriangle className="size-3" />
-                  {d.danger}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <p className="font-mono text-xs tracking-widest text-primary uppercase">{d.era}</p>
-              <h3 className="mt-1 text-2xl font-bold text-foreground">{d.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
-
-              <ul className="mt-4 space-y-1.5">
-                {d.attractions.slice(0, 3).map((a) => (
-                  <li key={a} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="size-3.5 shrink-0 text-primary" />
-                    {a}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
-                <span className="font-mono text-sm font-semibold text-foreground">{d.priceCredits}</span>
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-                  Détails
-                  <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </span>
-              </div>
-            </div>
-          </button>
+          />
         ))}
       </div>
 
       {active && <DestinationModal destination={active} onClose={() => setActive(null)} />}
     </section>
+  )
+}
+
+function DestinationCard({ d, onClick }: { d: Destination; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="group relative overflow-hidden rounded-3xl border border-border bg-card text-left transition-all duration-500 hover:-translate-y-2 hover:border-primary/60 hover:neon-border"
+    >
+      <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+        <Image
+          src={d.image || "/placeholder.svg"}
+          alt={`${d.name}, ${d.year}`}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className={`object-cover transition-all duration-700 ${hovered ? "scale-105 opacity-0" : "scale-100 opacity-100"}`}
+        />
+        {hovered && (
+          <video
+            src={d.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-card/20 to-transparent pointer-events-none" />
+        {/* shimmer sweep */}
+        <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-primary/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+
+        <div className="absolute left-4 top-4 flex items-center gap-2">
+          <span className="rounded-full border border-primary/40 bg-background/70 px-3 py-1 font-mono text-xs text-primary backdrop-blur">
+            {d.year}
+          </span>
+        </div>
+        <div className="absolute right-4 top-4">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[0.7rem] backdrop-blur ${dangerStyles[d.danger]}`}
+          >
+            <AlertTriangle className="size-3" />
+            {d.danger}
+          </span>
+        </div>
+      </div>
+
+      <div className="p-6">
+        <p className="font-mono text-xs tracking-widest text-primary uppercase">{d.era}</p>
+        <h3 className="mt-1 text-2xl font-bold text-foreground">{d.name}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{d.tagline}</p>
+
+        <ul className="mt-4 space-y-1.5">
+          {d.attractions.slice(0, 3).map((a) => (
+            <li key={a} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="size-3.5 shrink-0 text-primary" />
+              {a}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+          <span className="font-mono text-sm font-semibold text-foreground">{d.priceCredits}</span>
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+            Détails
+            <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
+        </div>
+      </div>
+    </button>
   )
 }
 
@@ -129,13 +152,22 @@ function DestinationModal({
       />
 
       <div className="relative z-10 max-h-[92svh] w-full max-w-3xl overflow-y-auto rounded-t-3xl border border-border bg-card shadow-2xl [animation:fade-up_0.35s_ease-out] sm:rounded-3xl">
-        <div className="relative h-56 overflow-hidden sm:h-72">
+        <div className="relative h-56 overflow-hidden sm:h-72 bg-muted">
           <Image
             src={d.image || "/placeholder.svg"}
             alt={`${d.name}, ${d.year}`}
             fill
             sizes="(max-width: 768px) 100vw, 768px"
             className="object-cover"
+            priority
+          />
+          <video
+            src={d.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
           <button

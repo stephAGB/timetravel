@@ -6,6 +6,7 @@ export type Destination = {
   era: string
   year: string
   image: string
+  video: string
   tagline: string
   danger: DangerLevel
   duration: string
@@ -22,6 +23,7 @@ export const destinations: Destination[] = [
     era: "Belle Époque",
     year: "1889 apr. J.-C.",
     image: "/destinations/paris-1889.png",
+    video: "/destinations/paris1889 vid.mp4",
     tagline: "Vivez l'inauguration de la Tour Eiffel",
     danger: "Faible",
     duration: "4 jours temporels",
@@ -45,6 +47,7 @@ export const destinations: Destination[] = [
     era: "Haute Renaissance",
     year: "1503 apr. J.-C.",
     image: "/destinations/renaissance-florence.png",
+    video: "/destinations/renaissance florence vid v2.mp4",
     tagline: "Dînez avec De Vinci à Florence",
     danger: "Faible",
     duration: "5 jours temporels",
@@ -68,6 +71,7 @@ export const destinations: Destination[] = [
     era: "Mésozoïque",
     year: "70 MA av. J.-C.",
     image: "/destinations/cretaceous.png",
+    video: "/destinations/Cretacee_vid.mp4",
     tagline: "Explorez un monde de géants préhistoriques",
     danger: "Élevé",
     duration: "6 jours temporels",
