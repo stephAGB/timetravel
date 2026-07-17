@@ -5,15 +5,7 @@ import { Bot, Send, Sparkles, X, MessageCircle } from "lucide-react"
 
 type Message = { role: "bot" | "user"; text: string }
 
-const quickReplies = ["Suggérer une destination", "Règles de sécurité", "FAQ"]
-
-const cannedResponses: Record<string, string> = {
-  "Suggérer une destination":
-    "Pour un premier voyage, je recommande la Renaissance italienne (1503) — une timeline à faible danger avec un art à couper le souffle et une cuisine d'exception. Envie d'audace ? Néo-Tokyo 2150, c'est pure adrénaline.",
-  "Règles de sécurité":
-    "Trois règles d'or : ne jamais révéler que vous venez du futur, ne jamais retirer d'artefacts de la timeline, et toujours porter votre bracelet Réseau Chronos. Respectez-les et votre taux de paradoxe reste à 0,00 %.",
-  FAQ: "Questions fréquentes : les voyages durent de 4 à 7 jours temporels. Le paiement se fait en euros (€). Le retour est garanti par notre ancre de réseau. Posez-moi toutes vos questions !",
-}
+const DEFAULT_QUICK_REPLIES = ["Suggérer une destination", "Règles de sécurité", "FAQ"]
 
 export function Chatbot() {
   const [open, setOpen] = useState(false)
@@ -89,6 +81,21 @@ export function Chatbot() {
     }
   }
 
+  // Get dynamic options from the last bot message
+  const lastBotMessage = [...messages].reverse().find((m) => m.role === "bot")
+  let displayOptions = DEFAULT_QUICK_REPLIES
+  
+  if (lastBotMessage && !loading) {
+    const matches = lastBotMessage.text.match(/\[\[(.*?)\]\]/g)
+    if (matches && matches.length > 0) {
+      displayOptions = matches.map((m) => m.replace(/\[\[|\]\]/g, ""))
+    }
+  }
+
+  const cleanMessageText = (text: string) => {
+    return text.replace(/((\d+\.\s*)|(-\s*))?\[\[(.*?)\]\]\n?/g, "").trim()
+  }
+
   return (
     <>
       {/* launcher */}
@@ -140,7 +147,7 @@ export function Chatbot() {
                     : "rounded-bl-sm border border-border bg-secondary/60 text-foreground"
                 }`}
               >
-                {m.text}
+                {m.role === "bot" ? cleanMessageText(m.text) : m.text}
               </div>
             </div>
           ))}
@@ -155,7 +162,7 @@ export function Chatbot() {
 
         {/* quick replies */}
         <div className="flex flex-wrap gap-2 px-4 pb-2">
-          {quickReplies.map((q) => (
+          {displayOptions.map((q) => (
             <button
               key={q}
               type="button"
