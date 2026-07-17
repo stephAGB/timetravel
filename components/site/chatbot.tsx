@@ -7,6 +7,29 @@ type Message = { role: "bot" | "user"; text: string }
 
 const DEFAULT_QUICK_REPLIES = ["Suggérer une destination", "Règles de sécurité", "FAQ"]
 
+const QUIZ_QUESTIONS = [
+  {
+    question: "Question 1 : Quelle atmosphère vous attire le plus ?",
+    options: ["Art & Renaissance", "Révolution Industrielle", "Exploration Préhistorique"],
+  },
+  {
+    question: "Question 2 : Quel est votre rapport au risque et au danger ?",
+    options: ["Sécurité absolue (Risque faible)", "Grande aventure (Risque élevé)"],
+  },
+  {
+    question: "Question 3 : Quelle est votre température idéale ?",
+    options: ["Doux printanier (18°C)", "Agréable méditerranéen (22°C)", "Chaleur tropicale (32°C)"],
+  },
+  {
+    question: "Question 4 : Combien de jours temporels souhaitez-vous partir ?",
+    options: ["Escapade de 4 jours", "Séjour standard de 5 jours", "Exploration de 6 jours"],
+  },
+  {
+    question: "Question 5 : Quel budget en crédits souhaitez-vous allouer ?",
+    options: ["Modéré (35 000 €)", "Moyen (62 000 €)", "Premium (95 000 €)"],
+  },
+]
+
 export function Chatbot() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
@@ -17,6 +40,8 @@ export function Chatbot() {
   ])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [quizStep, setQuizStep] = useState<number>(0)
+  const [quizAnswers, setQuizAnswers] = useState<string[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -27,14 +52,111 @@ export function Chatbot() {
     const trimmed = text.trim()
     if (!trimmed || loading) return
 
+    setInput("")
+
+    // 1. If in the middle of a quiz, run the frontend state machine
+    if (quizStep > 0 && quizStep <= 5) {
+      const userMessage: Message = { role: "user", text: trimmed }
+      const newAnswers = [...quizAnswers, trimmed]
+      setQuizAnswers(newAnswers)
+
+      const nextStep = quizStep + 1
+
+      if (nextStep <= 5) {
+        setMessages((m) => [
+          ...m,
+          userMessage,
+          { role: "bot", text: QUIZ_QUESTIONS[nextStep - 1].question }
+        ])
+        setQuizStep(nextStep)
+      } else {
+        // Quiz finished! Compile and send to Groq API
+        setMessages((m) => [...m, userMessage])
+        setLoading(true)
+
+        try {
+          const compiledPrompt = `Voici mon profil de chrono-voyageur :
+1. Atmosphère : ${newAnswers[0]}
+2. Rapport au risque : ${newAnswers[1]}
+3. Climat : ${newAnswers[2]}
+4. Durée du séjour : ${newAnswers[3]}
+5. Budget : ${newAnswers[4]}
+
+Recommande-moi la meilleure destination de l'agence parmi Paris 1889, Florence 1503 et Le Crétacé en m'expliquant pourquoi en 2 phrases, et invite-moi à réserver.`
+
+          const apiMessages = [
+            ...messages
+              .filter((m) => m.role === "bot" && m.text.includes("Salutations"))
+              .map((m) => ({
+                role: "assistant" as const,
+                content: m.text,
+              })),
+            { role: "user" as const, content: compiledPrompt }
+          ]
+
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: apiMessages }),
+          })
+
+          if (!res.ok) throw new Error("API request failed")
+
+          const data = await res.json()
+          
+          if (data.error === "API_KEYS_MISSING") {
+            setMessages((m) => [...m, { role: "bot", text: data.message }])
+          } else {
+            setMessages((m) => [
+              ...m,
+              {
+                role: "bot",
+                text: data.text || "Désolé, je ne parviens pas à formuler une recommandation.",
+              },
+            ])
+          }
+        } catch (err) {
+          console.error(err)
+          setMessages((m) => [
+            ...m,
+            {
+              role: "bot",
+              text: "Connexion impossible avec le réseau temporel. Veuillez réessayer.",
+            },
+          ])
+        } finally {
+          setLoading(false)
+          setQuizStep(0)
+          setQuizAnswers([])
+        }
+      }
+      return
+    }
+
+    // 2. Start the quiz if requested
+    if (
+      trimmed === "Suggérer une destination" || 
+      trimmed.toLowerCase().includes("suggérer") || 
+      trimmed.toLowerCase().includes("recommander") || 
+      trimmed.toLowerCase().includes("quiz")
+    ) {
+      setQuizStep(1)
+      setQuizAnswers([])
+      setMessages((m) => [
+        ...m,
+        { role: "user", text: trimmed },
+        { role: "bot", text: "Super ! Démarrons notre questionnaire pour trouver votre époque idéale.\n\n" + QUIZ_QUESTIONS[0].question }
+      ])
+      return
+    }
+
+    // 3. Default fallback messaging (normal conversation)
     const userMessage: Message = { role: "user", text: trimmed }
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
-    setInput("")
     setLoading(true)
 
     try {
-      // Map to API format
       const apiMessages = updatedMessages.map((m) => ({
         role: m.role === "bot" ? "assistant" : "user",
         content: m.text,
@@ -73,7 +195,7 @@ export function Chatbot() {
         ...m,
         {
           role: "bot",
-          text: "Connexion impossible avec le réseau temporel. Veuillez vérifier votre clé API et réessayer.",
+          text: "Connexion impossible avec le réseau temporel. Veuillez réessayer.",
         },
       ])
     } finally {
@@ -81,19 +203,10 @@ export function Chatbot() {
     }
   }
 
-  // Get dynamic options from the last bot message
-  const lastBotMessage = [...messages].reverse().find((m) => m.role === "bot")
+  // Get dynamic options depending on the current quiz step
   let displayOptions = DEFAULT_QUICK_REPLIES
-  
-  if (lastBotMessage && !loading) {
-    const matches = lastBotMessage.text.match(/\[\[(.*?)\]\]/g)
-    if (matches && matches.length > 0) {
-      displayOptions = matches.map((m) => m.replace(/\[\[|\]\]/g, ""))
-    }
-  }
-
-  const cleanMessageText = (text: string) => {
-    return text.replace(/((\d+\.\s*)|(-\s*))?\[\[(.*?)\]\]\n?/g, "").trim()
+  if (quizStep > 0 && quizStep <= 5 && !loading) {
+    displayOptions = QUIZ_QUESTIONS[quizStep - 1].options
   }
 
   return (
@@ -147,7 +260,7 @@ export function Chatbot() {
                     : "rounded-bl-sm border border-border bg-secondary/60 text-foreground"
                 }`}
               >
-                {m.role === "bot" ? cleanMessageText(m.text) : m.text}
+                {m.text}
               </div>
             </div>
           ))}

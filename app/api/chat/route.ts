@@ -109,6 +109,10 @@ export async function POST(req: Request) {
     const data = await response.json()
     const botReply = data.choices?.[0]?.message?.content || "Désolé, je ne parviens pas à formuler une réponse."
 
+    console.log("=== CHATBOT RESPONSE ===")
+    console.log(botReply)
+    console.log("=========================")
+
     return NextResponse.json({ text: botReply })
   } catch (error: any) {
     console.error("Error in chat API route:", error)
