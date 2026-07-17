@@ -242,7 +242,7 @@ Recommande-moi la meilleure destination de l'agence parmi Paris 1889, Florence 1
           </span>
           <div>
             <p className="text-sm font-semibold text-foreground">Chronos AI</p>
-            <p className="font-mono text-[0.7rem] text-muted-foreground">Temporal concierge · online</p>
+            <p className="font-mono text-[0.7rem] text-muted-foreground">Concierge temporel · openai/gpt-oss-120b</p>
           </div>
         </div>
 
